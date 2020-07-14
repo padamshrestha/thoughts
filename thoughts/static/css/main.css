@@ -49,63 +49,22 @@ blockquote footer:before {
 
 @media screen and (max-width: 1600px) {
 	blockquote {
-		font-size: 2vw;
+		font-size: 3vw;
 	}
 }
 
 @media all and (max-width: 1200px) {
 	blockquote {
-		font-size: 2.5vw;
+		font-size: 3vw;
 	}
 }
 
-@media all and (max-width: 600px) {
+@media all and (max-width: 800px) {
 	blockquote {
-		font-size: 18px;
+		font-size: 32px;
 	}
 	blockquote {
 		width: 100%;
 		min-width: 100%;
 	}
 }
-/*
-span.made {
-  color: #666;
-  font-size: 12px;
-  display: block;
-  position: absolute;
-  bottom: 10px;
-  position: absolute;
-  width: 90%;
-  left: 50%;
-  top: 45%;
-  bottom: auto;
-  right: auto;
-  transform: translateX(-50%) translateY(-50%);
-  text-align: center;
-}
-
-span.made a {
-    color: #000000;
-    text-decoration: none;
-}
-
-span.made .fa {
-    color: #E90606;
-    margin: 0 3px;
-    font-size: 10px;
-    animation: pound .35s infinite alternate;
-    -webkit-animation: pound .35s infinite alternate;
-}
-
-@-webkit-keyframes pound {
-  to {
-    transform: scale(1.1);
-	}
-}
-
-
-@keyframes pound {
-  to {
-    transform: scale(1.1);
-		 */
