@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Flask app</title>
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<main>
+			{% block content %}
+			{% endblock %}
+		</main>
+		<footer>
+			<span>Made with <span class="heart" style="color: #e25555">❤</span> by <a href="https://twitter.com/sushant_kumar" target="_blank">Sushant</a></span>
+		</footer>
+	</body>
+</html>
