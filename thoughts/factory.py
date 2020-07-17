@@ -7,6 +7,7 @@ from flask_pymongo import PyMongo
 from flask import render_template
 import requests
 import json
+from bson.json_util import dumps
 
 
 
@@ -57,29 +58,44 @@ def create_app():
         data['prompt'] = key_prompt.format(key) if key else default_prompt
 
         # Get Tweet
+        # try:
+        #     response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(data))
+        #     res = response.json()
+        #     tweet = res['choices'][0]['text'].strip()
+        # except Exception as e:
+        #     print(e)
+        #     page_views = mongo.db['page_views']
+        #     cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': { 'size': 1}}])
+        #     record = json.loads(dumps(cursor))[0]
+        #     print(record)
+        #     tweet = record['tweet']
+        # print(tweet)
+
         try:
-            response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(data))
-            res = response.json()
-            tweet = res['choices'][0]['text'].strip()
+            page_views = mongo.db['page_views']
+            cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': { 'size': 1}}])
+            record = json.loads(dumps(cursor))[0]
+            tweet = record['tweet']
         except Exception as e:
             print(e)
-            tweet = "We are facing very high levels of traffic right now. Please try again later!"
+            tweet = "Oops! Something wasn't right. Please try again!"
+
         print(tweet)
 
 
         # Save data
-        ip_address = flask.request.remote_addr
-        user_agent = flask.request.user_agent.string
-        try:
-            page_views = mongo.db['page_views']
-            page_views.insert_one({
-                'key': key,
-                'tweet': tweet,
-                'ip_address': ip_address,
-                'user_agent': user_agent
-            })
-        except Exception as e:
-            print(e)
+        # ip_address = flask.request.remote_addr
+        # user_agent = flask.request.user_agent.string
+        # try:
+        #     page_views = mongo.db['page_views']
+        #     page_views.insert_one({
+        #         'key': key,
+        #         'tweet': tweet,
+        #         'ip_address': ip_address,
+        #         'user_agent': user_agent
+        #     })
+        # except Exception as e:
+        #     print(e)
 
         return render_template('quotes.html', tweet=tweet)
 
