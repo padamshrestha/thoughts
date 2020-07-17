@@ -47,8 +47,8 @@ def create_app():
     }
 
     app = Flask(__name__)
-    app.config['MONGO_URI'] = MONGODB_URI
-    mongo = PyMongo(app)
+    # app.config['MONGO_URI'] = MONGODB_URI
+    # mongo = PyMongo(app)
 
     @app.route('/', defaults={'key': None})
     @app.route('/<key>')
