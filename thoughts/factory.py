@@ -68,18 +68,18 @@ def create_app():
 
 
         # Save data
-        ip_address = flask.request.remote_addr
-        user_agent = flask.request.user_agent.string
-        try:
-            page_views = mongo.db['page_views']
-            page_views.insert_one({
-                'key': key,
-                'tweet': tweet,
-                'ip_address': ip_address,
-                'user_agent': user_agent
-            })
-        except Exception as e:
-            print(e)
+        # ip_address = flask.request.remote_addr
+        # user_agent = flask.request.user_agent.string
+        # try:
+        #     page_views = mongo.db['page_views']
+        #     page_views.insert_one({
+        #         'key': key,
+        #         'tweet': tweet,
+        #         'ip_address': ip_address,
+        #         'user_agent': user_agent
+        #     })
+        # except Exception as e:
+        #     print(e)
 
         return render_template('quotes.html', tweet=tweet)
 
