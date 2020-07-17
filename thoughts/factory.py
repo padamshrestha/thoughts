@@ -63,7 +63,7 @@ def create_app():
             tweet = res['choices'][0]['text'].strip()
         except Exception as e:
             print(e)
-            tweet = "Oops! That did not go as planned. Try again!"
+            tweet = "We are facing very high levels of traffic right now. Please try again later!"
         print(tweet)
 
 
