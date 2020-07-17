@@ -26,16 +26,6 @@ blockquote {
 	-moz-osx-fon-smoothing: grayscale;
 }
 
-/* blockquote p:first-of-type:before {
-	content: '\201c';
-	position: absolute;
-	left: -.5em;
-}
-
-blockquote p:last-of-type:after {
-	content: '\201d';
-	position: absolute;
-} */
 
 blockquote footer {
 	position: relative;
