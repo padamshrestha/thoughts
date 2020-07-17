@@ -71,17 +71,23 @@ def create_app():
         #     tweet = record['tweet']
         # print(tweet)
 
+        # Get tweet or random tweet
         try:
             page_views = mongo.db['page_views']
             cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': { 'size': 1}}])
             record = json.loads(dumps(cursor))[0]
+        except Exception as e:
+            print("Error in finding tweet by key: {}".format(e))
+            cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
+            record = json.loads(dumps(cursor))[0]
+
+        try:
             tweet = record['tweet']
         except Exception as e:
             print(e)
             tweet = "Oops! Something wasn't right. Please try again!"
 
         print(tweet)
-
 
         # Save data
         # ip_address = flask.request.remote_addr
