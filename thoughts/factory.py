@@ -71,15 +71,25 @@ def create_app():
         #     tweet = record['tweet']
         # print(tweet)
 
-        # Get tweet or random tweet
+        # Get tweet by key
+        page_views = mongo.db['page_views']
         try:
-            page_views = mongo.db['page_views']
-            cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': { 'size': 1}}])
+            cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': {'size': 1}}])
             record = json.loads(dumps(cursor))[0]
         except Exception as e:
-            print("Error in finding tweet by key: {}".format(e))
-            cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
-            record = json.loads(dumps(cursor))[0]
+            print("No match by key: {}".format(e))
+            # Get tweet by regex
+            try:
+                cursor = page_views.aggregate([{'$match': {'tweet': {'$regex': key}}}, {'$sample': {'size': 1}}])
+                record = json.loads(dumps(cursor))[0]
+            except Exception as e:
+                print("No match for regex: {}".format(e))
+                # Get random tweet
+                try:
+                    cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
+                    record = json.loads(dumps(cursor))[0]
+                except Exception as e:
+                    print("Error in random tweet selection: {}".format(e))
 
         try:
             tweet = record['tweet']
