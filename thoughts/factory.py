@@ -14,11 +14,12 @@ from bson.json_util import dumps
 def create_app():
 
     MONGODB_URI = os.getenv('MONGODB_URI')
+    API_KEY = os.getenv('API_KEY')
     DAVINCI_URL = "https://api.openai.com/v1/engines/davinci/completions"
 
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer sk-YQGRVYEvq9NVP7nXFnDdC0CL7aojDcBYMU9n3Nxu"
+        "Authorization": "Bearer {}".format(API_KEY)
     }
 
     default_prompt = """
@@ -73,29 +74,28 @@ def create_app():
             except Exception as e:
                 print("No match for regex: {}".format(e))
 
+                # Make a GPT request
                 payload['prompt'] = key_prompt.format(key) if key else default_prompt
-                response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
-                res_data = response.json()
-                tweet = res_data['choices'][0]['text'].strip()
-
-                # Store tweet in database
-                page_views.insert_one({
-                    'key': key,
-                    'tweet': tweet
-                })
-
-                # Get random tweet
                 try:
-                    cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
-                    record = json.loads(dumps(cursor))[0]
-                except Exception as e:
-                    print("Error in random tweet selection: {}".format(e))
+                    response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
+                    res_data = response.json()
+                    tweet = res_data['choices'][0]['text'].strip()
+                    # Store tweet in database
+                    page_views.insert_one({
+                        'key': key,
+                        'tweet': tweet
+                    })
+                except:
+                    print(e)
+                    tweet = "Oops! Something wasn't right. Please try again!"
 
-        try:
-            tweet = record['tweet']
-        except Exception as e:
-            print(e)
-            tweet = "Oops! Something wasn't right. Please try again!"
+                # # Get random tweet
+                # try:
+                #     cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
+                #     record = json.loads(dumps(cursor))[0]
+                # except Exception as e:
+                #     print("Error in random tweet selection: {}".format(e))
+
 
         print(tweet)
 
