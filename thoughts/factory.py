@@ -37,8 +37,8 @@ def create_app():
     key: {}
     tweet:"""
 
-    data = {
-      "max_tokens": 40,
+    payload = {
+      "max_tokens": 60,
       "temperature": 1,
       "top_p": 1,
       "n": 1,
@@ -55,35 +55,35 @@ def create_app():
     @app.route('/<key>', methods=['GET'])
     def load_tweet(key):
 
-        data['prompt'] = key_prompt.format(key) if key else default_prompt
-
-        # Get Tweet
-        # try:
-        #     response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(data))
-        #     res = response.json()
-        #     tweet = res['choices'][0]['text'].strip()
-        # except Exception as e:
-        #     print(e)
-        #     page_views = mongo.db['page_views']
-        #     cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': { 'size': 1}}])
-        #     record = json.loads(dumps(cursor))[0]
-        #     print(record)
-        #     tweet = record['tweet']
-        # print(tweet)
 
         # Get tweet by key
         page_views = mongo.db['page_views']
+        requests_collection = mongo.db['requests']
         try:
             cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': {'size': 1}}])
             record = json.loads(dumps(cursor))[0]
+            tweet = record['tweet']
         except Exception as e:
             print("No match by key: {}".format(e))
             # Get tweet by regex
             try:
                 cursor = page_views.aggregate([{'$match': {'tweet': {'$regex': key}}}, {'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
+                tweet = record['tweet']
             except Exception as e:
                 print("No match for regex: {}".format(e))
+
+                payload['prompt'] = key_prompt.format(key) if key else default_prompt
+                response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
+                res_data = response.json()
+                tweet = res_data['choices'][0]['text'].strip()
+
+                # Store tweet in database
+                page_views.insert_one({
+                    'key': key,
+                    'tweet': tweet
+                })
+
                 # Get random tweet
                 try:
                     cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
@@ -103,7 +103,6 @@ def create_app():
         ip_address = flask.request.remote_addr
         user_agent = flask.request.user_agent.string
         try:
-            requests_collection = mongo.db['requests']
             requests_collection.insert_one({
                 'key': key,
                 'ip_address': ip_address,
