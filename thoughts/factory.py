@@ -1,6 +1,7 @@
 # factory.py
 
 import os
+import numpy as np
 import flask
 from flask import Flask
 from flask_pymongo import PyMongo
@@ -60,42 +61,36 @@ def create_app():
         # Get tweet by key
         page_views = mongo.db['page_views']
         requests_collection = mongo.db['requests']
-        try:
-            cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': {'size': 1}}])
-            record = json.loads(dumps(cursor))[0]
-            tweet = record['tweet']
-        except Exception as e:
-            print("No match by key: {}".format(e))
-            # Get tweet by regex
+
+        tweet_count_cursor = page_views.count({'key': key})
+        tweet_count = json.loads(dumps(tweet_count_cursor))
+
+        prob = np.random.uniform()
+        if tweet_count == 0 or prob < (1/tweet_count):
+            # Make a GPT request
+            print("----> GPT REQUEST: tweet_count - {}".format(tweet_count))
+            payload['prompt'] = key_prompt.format(key) if key else default_prompt
             try:
-                cursor = page_views.aggregate([{'$match': {'tweet': {'$regex': key}}}, {'$sample': {'size': 1}}])
+                response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
+                res_data = response.json()
+                tweet = res_data['choices'][0]['text'].strip()
+                # Store tweet in database
+                page_views.insert_one({
+                    'key': key,
+                    'tweet': tweet
+                })
+            except:
+                print(e)
+                tweet = "Oops! Something wasn't right. Please try again!"
+        else:
+            # Sample some existing tweet
+            try:
+                cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
                 tweet = record['tweet']
             except Exception as e:
-                print("No match for regex: {}".format(e))
-
-                # Make a GPT request
-                payload['prompt'] = key_prompt.format(key) if key else default_prompt
-                try:
-                    response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
-                    res_data = response.json()
-                    tweet = res_data['choices'][0]['text'].strip()
-                    # Store tweet in database
-                    page_views.insert_one({
-                        'key': key,
-                        'tweet': tweet
-                    })
-                except:
-                    print(e)
-                    tweet = "Oops! Something wasn't right. Please try again!"
-
-                # # Get random tweet
-                # try:
-                #     cursor = page_views.aggregate([{'$sample': { 'size': 1}}])
-                #     record = json.loads(dumps(cursor))[0]
-                # except Exception as e:
-                #     print("Error in random tweet selection: {}".format(e))
-
+                print(e)
+                tweet = "Oops! Something wasn't right. Please try again!"
 
         print(tweet)
 
