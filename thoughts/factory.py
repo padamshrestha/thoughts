@@ -103,8 +103,8 @@ def create_app():
         ip_address = flask.request.remote_addr
         user_agent = flask.request.user_agent.string
         try:
-            requests = mongo.db['requests']
-            requests.insert_one({
+            requests_collection = mongo.db['requests']
+            requests_collection.insert_one({
                 'key': key,
                 'ip_address': ip_address,
                 'user_agent': user_agent
