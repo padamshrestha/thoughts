@@ -64,8 +64,7 @@ def create_app():
         tweet_count_cursor = page_views.count({'key': key})
         tweet_count = json.loads(dumps(tweet_count_cursor))
 
-        prob = np.random.uniform()
-        if tweet_count == 0 or prob < (1/tweet_count):
+        if tweet_count == 0:
             try:
                 cursor = page_views.aggregate([{'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
@@ -98,7 +97,7 @@ def create_app():
                 print(e)
                 tweet = "Oops! Something wasn't right. Please try again!"
 
-        print(tweet)
+        print("{}: {}".format(key, tweet))
 
         # Save data
         ip_address = flask.request.remote_addr
