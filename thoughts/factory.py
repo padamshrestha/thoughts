@@ -57,7 +57,6 @@ def create_app():
     @app.route('/<key>', methods=['GET'])
     def load_tweet(key):
 
-
         # Get tweet by key
         page_views = mongo.db['page_views']
         requests_collection = mongo.db['requests']
@@ -67,21 +66,28 @@ def create_app():
 
         prob = np.random.uniform()
         if tweet_count == 0 or prob < (1/tweet_count):
-            # Make a GPT request
-            print("----> GPT REQUEST: tweet_count - {}".format(tweet_count))
-            payload['prompt'] = key_prompt.format(key) if key else default_prompt
             try:
-                response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
-                res_data = response.json()
-                tweet = res_data['choices'][0]['text'].strip()
-                # Store tweet in database
-                page_views.insert_one({
-                    'key': key,
-                    'tweet': tweet
-                })
-            except:
+                cursor = page_views.aggregate([{'$sample': {'size': 1}}])
+                record = json.loads(dumps(cursor))[0]
+                tweet = record['tweet']
+            except Exception as e:
                 print(e)
                 tweet = "Oops! Something wasn't right. Please try again!"
+            # Make a GPT request
+            # print("----> GPT REQUEST {}: {}".format(tweet_count, key))
+            # payload['prompt'] = key_prompt.format(key) if key else default_prompt
+            # try:
+            #     response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
+            #     res_data = response.json()
+            #     tweet = res_data['choices'][0]['text'].strip()
+            #     # Store tweet in database
+            #     page_views.insert_one({
+            #         'key': key,
+            #         'tweet': tweet
+            #     })
+            # except:
+            #     print(e)
+            #     tweet = "Oops! Something wasn't right. Please try again!"
         else:
             # Sample some existing tweet
             try:
