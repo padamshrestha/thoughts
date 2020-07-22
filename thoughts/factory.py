@@ -49,6 +49,8 @@ def create_app():
       "stop": "\n"
     }
 
+    censor_words = ['jews', 'jew', 'woman', 'women', 'china', 'black', 'holocaust']
+
     app = Flask(__name__)
     app.config['MONGO_URI'] = MONGODB_URI
     mongo = PyMongo(app)
@@ -64,7 +66,7 @@ def create_app():
         tweet_count_cursor = page_views.count({'key': key})
         tweet_count = json.loads(dumps(tweet_count_cursor))
 
-        if tweet_count == 0:
+        if tweet_count == 0 or key in censor_words:
             try:
                 cursor = page_views.aggregate([{'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
