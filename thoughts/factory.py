@@ -49,7 +49,7 @@ def create_app():
       "stop": "\n"
     }
 
-    censor_words = ['jews', 'jew', 'woman', 'women', 'china', 'black', 'holocaust']
+    censor_words = ['jews', 'jew', 'woman', 'women', 'china', 'black', 'holocaust', 'muslim', 'islam', 'muslims']
 
     app = Flask(__name__)
     app.config['MONGO_URI'] = MONGODB_URI
