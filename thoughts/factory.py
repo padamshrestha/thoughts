@@ -60,15 +60,15 @@ def create_app():
     def load_tweet(key):
 
         # Get tweet by key
-        page_views = mongo.db['page_views']
+        page_views = mongo.db['sanitised_page_views']
         requests_collection = mongo.db['requests']
 
-        tweet_count_cursor = page_views.count({'key': key})
+        tweet_count_cursor = page_views.count({'key': key, 'sanitised': 1})
         tweet_count = json.loads(dumps(tweet_count_cursor))
 
         if tweet_count == 0 or key in censor_words:
             try:
-                cursor = page_views.aggregate([{'$sample': {'size': 1}}])
+                cursor = page_views.aggregate([{'$match': {'sanitised': 1 }}, {'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
                 tweet = record['tweet']
             except Exception as e:
@@ -92,7 +92,7 @@ def create_app():
         else:
             # Sample some existing tweet
             try:
-                cursor = page_views.aggregate([{'$match': {'key': key }}, {'$sample': {'size': 1}}])
+                cursor = page_views.aggregate([{'$match': {'key': key, 'sanitised': 1 }}, {'$sample': {'size': 1}}])
                 record = json.loads(dumps(cursor))[0]
                 tweet = record['tweet']
             except Exception as e:
