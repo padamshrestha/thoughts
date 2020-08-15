@@ -11,7 +11,6 @@ import json
 from bson.json_util import dumps
 
 
-
 def create_app():
 
     MONGODB_URI = os.getenv('MONGODB_URI')
@@ -49,8 +48,6 @@ def create_app():
       "stop": "\n"
     }
 
-    censor_words = ['jews', 'jew', 'woman', 'women', 'china', 'black', 'holocaust', 'muslim', 'islam', 'muslims']
-
     app = Flask(__name__)
     app.config['MONGO_URI'] = MONGODB_URI
     mongo = PyMongo(app)
@@ -66,42 +63,25 @@ def create_app():
         tweet_count_cursor = page_views.count({'key': key, 'sanitised': 1})
         tweet_count = json.loads(dumps(tweet_count_cursor))
 
-        if tweet_count == 0 or key in censor_words:
-            try:
-                cursor = page_views.aggregate([{'$match': {'sanitised': 1 }}, {'$sample': {'size': 1}}])
-                record = json.loads(dumps(cursor))[0]
-                tweet = record['tweet']
-            except Exception as e:
-                print(e)
-                tweet = "Oops! Something wasn't right. Please try again!"
-            # Make a GPT request
-            # print("----> GPT REQUEST {}: {}".format(tweet_count, key))
-            # payload['prompt'] = key_prompt.format(key) if key else default_prompt
-            # try:
-            #     response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
-            #     res_data = response.json()
-            #     tweet = res_data['choices'][0]['text'].strip()
-            #     # Store tweet in database
-            #     page_views.insert_one({
-            #         'key': key,
-            #         'tweet': tweet
-            #     })
-            # except:
-            #     print(e)
-            #     tweet = "Oops! Something wasn't right. Please try again!"
-        else:
-            # Sample some existing tweet
-            try:
-                cursor = page_views.aggregate([{'$match': {'key': key, 'sanitised': 1 }}, {'$sample': {'size': 1}}])
-                record = json.loads(dumps(cursor))[0]
-                tweet = record['tweet']
-            except Exception as e:
-                print(e)
-                tweet = "Oops! Something wasn't right. Please try again!"
+        # Make the GPT completion request for tweet
+        print("----> GPT REQUEST {}: {}".format(tweet_count, key))
+        payload['prompt'] = key_prompt.format(key) if key else default_prompt
+        try:
+            response = requests.post(DAVINCI_URL, headers=headers, data=json.dumps(payload))
+            res_data = response.json()
+            tweet = res_data['choices'][0]['text'].strip()
+            # Store tweet in database
+            page_views.insert_one({
+                'key': key,
+                'tweet': tweet
+            })
+        except:
+            print(e)
+            tweet = "Oops! Something wasn't right. Please try again!"
 
         print("{}: {}".format(key, tweet))
 
-        # Save data
+        # Save the IP address and the user of agent of the request
         ip_address = flask.request.remote_addr
         user_agent = flask.request.user_agent.string
         try:
